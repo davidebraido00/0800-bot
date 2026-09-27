@@ -22,8 +22,9 @@ def _callmebot(testo: str) -> None:
         timeout=60,
     )
     r.raise_for_status()
-    # CallMeBot risponde sempre 200: l'esito è nel testo (es. limite di 50 messaggi ogni 4 ore)
-    if "queued" not in r.text.lower():
+    # L'esito è nel testo: "Message queued" (invio immediato) oppure "added into the queue"
+    # (oltre 16 messaggi ogni 4 ore: consegna ritardata e raggruppata). Il resto è un errore.
+    if "queue" not in r.text.lower():
         raise RuntimeError(f"CallMeBot: {re.sub(r'<[^>]+>', ' ', r.text)[:300]}")
 
 
