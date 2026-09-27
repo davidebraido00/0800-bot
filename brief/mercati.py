@@ -1,4 +1,4 @@
-"""Quotazioni da Yahoo Finance: prezzo, variazione giornaliera e a 5 sedute."""
+"""Quotazioni da Yahoo Finance: prezzo, variazione a 1 giorno, 5 sedute e 1 mese."""
 from __future__ import annotations
 
 import tempfile
@@ -11,34 +11,63 @@ from .fmt import GIORNI_BREVI, numero, perc
 yf.set_tz_cache_location(tempfile.mkdtemp(prefix="yf-"))
 
 
-def _riga(nome: str, serie) -> str:
-    serie = serie.dropna()
-    if len(serie) < 2:
-        return f"▫️ {nome}: n.d."
-    ultimo = float(serie.iloc[-1])
-    var1 = (ultimo / float(serie.iloc[-2]) - 1) * 100
-    var5 = (ultimo / float(serie.iloc[-6]) - 1) * 100 if len(serie) >= 6 else None
-    pallino = "🟢" if var1 > 0.05 else "🔴" if var1 < -0.05 else "⚪"
-    decimali = 4 if ultimo < 10 else 2
-    riga = f"{pallino} {nome}: {numero(ultimo, decimali)} ({perc(var1)}"
-    if var5 is not None:
-        riga += f" · 5g {perc(var5)}"
-    return riga + ")"
+def _var(serie, sedute: int):
+    return (serie[-1] / serie[-1 - sedute] - 1) * 100 if len(serie) > sedute else None
 
 
-def sezione(cfg: dict, tz: str, oggi) -> str:
+def raccogli(cfg: dict, tz: str, oggi) -> dict:
     gruppi = cfg["gruppi"]
     tickers = sorted({sym for g in gruppi.values() for sym in g.values()})
     close = yf.download(tickers, period="1mo", interval="1d", progress=False,
                         auto_adjust=True, threads=False)["Close"]
-
     out = []
-    for i, (titolo, simboli) in enumerate(gruppi.items()):
-        # Data dell'ultima chiusura del primo simbolo del gruppo (utile nel weekend)
-        primo = close[next(iter(simboli.values()))].dropna()
-        data = f" _chiusura {GIORNI_BREVI[primo.index[-1].weekday()]} {primo.index[-1]:%d/%m}_" if len(primo) else ""
-        intestazione = f"*📈 Mercati*\n\n*{titolo}*{data}" if i == 0 else f"*{titolo}*{data}"
-        righe = [intestazione] + [_riga(nome, close[sym]) for nome, sym in simboli.items()]
-        out.append("\n".join(righe))
-    out.append("_Dati informativi, non sono consigli d'investimento._")
-    return "\n\n".join(out)
+    for titolo, simboli in gruppi.items():
+        righe, data = [], None
+        for nome, sym in simboli.items():
+            s = close[sym].dropna()
+            serie = [float(x) for x in s]
+            if data is None and len(s):
+                data = s.index[-1].date()
+            righe.append({
+                "nome": nome,
+                "simbolo": sym,
+                "serie": serie,
+                "prezzo": serie[-1] if serie else None,
+                "decimali": 4 if serie and serie[-1] < 10 else 2,
+                "var1": _var(serie, 1),
+                "var5": _var(serie, 5),
+                "var1m": (serie[-1] / serie[0] - 1) * 100 if len(serie) > 1 else None,
+            })
+        out.append({"titolo": titolo, "data": data, "righe": righe})
+    return {"gruppi": out}
+
+
+def migliore_peggiore(m: dict):
+    righe = [r for g in m["gruppi"] for r in g["righe"] if r["var1"] is not None]
+    if not righe:
+        return None, None
+    ordinate = sorted(righe, key=lambda r: r["var1"])
+    return ordinate[-1], ordinate[0]
+
+
+def data_breve(d) -> str:
+    return f"{GIORNI_BREVI[d.weekday()]} {d:%d/%m}" if d else ""
+
+
+def whatsapp(m: dict) -> str:
+    blocchi = []
+    for i, g in enumerate(m["gruppi"]):
+        data = f" _chiusura {data_breve(g['data'])}_" if g["data"] else ""
+        righe = [f"*📈 Mercati*\n\n*{g['titolo']}*{data}" if i == 0 else f"*{g['titolo']}*{data}"]
+        for r in g["righe"]:
+            if r["var1"] is None:
+                righe.append(f"▫️ {r['nome']}: n.d.")
+                continue
+            pallino = "🟢" if r["var1"] > 0.05 else "🔴" if r["var1"] < -0.05 else "⚪"
+            riga = f"{pallino} {r['nome']}: {numero(r['prezzo'], r['decimali'])} ({perc(r['var1'])}"
+            if r["var5"] is not None:
+                riga += f" · 5g {perc(r['var5'])}"
+            righe.append(riga + ")")
+        blocchi.append("\n".join(righe))
+    blocchi.append("_Dati informativi, non sono consigli d'investimento._")
+    return "\n\n".join(blocchi)

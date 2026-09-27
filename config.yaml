@@ -3,8 +3,11 @@
 
 timezone: Europe/Rome
 
-# Ordine delle sezioni nel messaggio
-ordine: [meteo, agenda, mercati, news]
+# Dove inviare il riepilogo
+canali: [whatsapp, email]
+
+# Ordine delle sezioni (vale per WhatsApp e per l'email)
+ordine: [meteo, agenda, mercati, crescita, news]
 
 meteo:
   citta: Conegliano
@@ -14,6 +17,18 @@ meteo:
 agenda:
   # Il link iCal privato va nel secret GOOGLE_CALENDAR_ICS (vedi README).
   mostra_luogo: true
+
+crescita:
+  inglese: true        # frase del giorno da data/inglese.yaml
+  pillola: true        # pillola del giorno da data/pillole.yaml
+  # Obiettivi settimanali contati dagli eventi in Google Calendar il cui titolo
+  # contiene una delle "parole". Esempio:
+  # obiettivi:
+  #   - nome: Palestra
+  #     emoji: 🏋️
+  #     parole: [palestra, gym]
+  #     a_settimana: 3
+  obiettivi: []
 
 news:
   per_argomento: 5
@@ -62,8 +77,8 @@ mercati:
       Amazon: AMZN
     🌐 ETF, materie prime, cambi:
       Euro Stoxx 50: ^STOXX50E
-      Vanguard FTSE All-World (VWCE): VWCE.DE
-      iShares MSCI World (SWDA): SWDA.MI
+      VWCE (All-World): VWCE.DE
+      SWDA (MSCI World): SWDA.MI
       Oro ($/oz): GC=F
       Petrolio Brent ($): BZ=F
       EUR/USD: EURUSD=X

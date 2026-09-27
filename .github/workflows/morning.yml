@@ -27,6 +27,9 @@ jobs:
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
           TWILIO_FROM: ${{ secrets.TWILIO_FROM }}
           GOOGLE_CALENDAR_ICS: ${{ secrets.GOOGLE_CALENDAR_ICS }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
         # Avvio manuale: invia subito. Avvio schedulato: solo se sono le 8 a Roma.
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then

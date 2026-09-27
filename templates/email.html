@@ -1,0 +1,219 @@
+{#- Email del mattino. Layout a tabelle e stili inline: è l'unico modo affidabile per Gmail/Outlook. -#}
+{%- set font = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" -%}
+{%- set inchiostro = "#1f1b16" -%}
+{%- set tenue = "#6b625a" -%}
+{%- set linea = "#ece6de" -%}
+{%- set accento = "#9a5b2e" -%}
+
+{%- macro titolo(testo, emoji) -%}
+<tr><td class="px" style="padding:28px 28px 10px 28px;">
+  <div style="font-family:{{ font }};font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:{{ accento }};">{{ emoji }}&nbsp; {{ testo }}</div>
+</td></tr>
+{%- endmacro -%}
+
+{%- macro non_disponibile(nome) -%}
+<tr><td class="px" style="padding:0 28px;font-family:{{ font }};font-size:14px;color:{{ tenue }};font-style:italic;">{{ nome }}: dati non disponibili oggi.</td></tr>
+{%- endmacro -%}
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>0800 · {{ data }}</title>
+<style>
+  @media only screen and (max-width: 480px) {
+    .px { padding-left: 16px !important; padding-right: 16px !important; }
+    .m-nascondi { display: none !important; }
+    .spark { width: 72px !important; height: 20px !important; }
+    .h1 { font-size: 22px !important; }
+    .temp { font-size: 18px !important; white-space: nowrap; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#f4f0ea;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f0ea;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;border-radius:14px;overflow:hidden;">
+
+  {#- ── Intestazione ── #}
+  <tr><td style="background:#2a1f19;padding:26px 28px 24px 28px;">
+    <div style="font-family:{{ font }};font-size:12px;font-weight:700;letter-spacing:3px;color:#d9a36a;">☕ 0800</div>
+    <div class="h1" style="font-family:{{ font }};font-size:26px;font-weight:700;color:#ffffff;margin-top:6px;">Buongiorno! {{ data }}</div>
+    {%- if d.meteo %}
+    <div style="font-family:{{ font }};font-size:15px;color:#e8ddd3;margin-top:6px;">{{ d.meteo.emoji }} {{ d.meteo.desc }} a {{ d.meteo.citta }}, {{ d.meteo.tmin }}°–{{ d.meteo.tmax }}°{% if d.agenda %}{% set n = d.agenda.eventi|length %} · {{ "nessun impegno" if n == 0 else ("1 impegno" if n == 1 else n ~ " impegni") }} in agenda{% endif %}</div>
+    {%- endif %}
+  </td></tr>
+
+  {%- for sezione in cfg.get("ordine", []) %}
+
+  {#- ── Meteo ── #}
+  {%- if sezione == "meteo" %}
+    {{ titolo("Meteo " ~ (d.meteo.citta if d.meteo else ""), "🌤️") }}
+    {%- if d.meteo %}{% set m = d.meteo %}
+    <tr><td class="px" style="padding:0 28px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid {{ linea }};border-radius:12px;">
+        <tr>
+          <td width="34%" style="padding:16px 18px;border-right:1px solid {{ linea }};font-family:{{ font }};">
+            <div style="font-size:34px;line-height:1;">{{ m.emoji }}</div>
+            <div class="temp" style="font-size:22px;font-weight:700;color:{{ inchiostro }};margin-top:8px;">{{ m.tmin }}° <span style="color:{{ tenue }};font-weight:400;">/</span> {{ m.tmax }}°</div>
+            <div style="font-size:13px;color:{{ tenue }};margin-top:2px;">{{ m.desc }}</div>
+          </td>
+          {%- for f in m.fasce %}
+          <td align="center" style="padding:16px 6px;font-family:{{ font }};">
+            <div style="font-size:12px;color:{{ tenue }};">{{ f.nome }}</div>
+            <div style="font-size:22px;margin:4px 0;">{{ f.emoji }}</div>
+            <div style="font-size:15px;font-weight:600;color:{{ inchiostro }};">{{ f.temp }}°</div>
+            <div style="font-size:12px;color:{{ tenue }};">💧 {{ f.pioggia }}%</div>
+          </td>
+          {%- endfor %}
+        </tr>
+        <tr><td colspan="4" style="border-top:1px solid {{ linea }};padding:10px 18px;font-family:{{ font }};font-size:13px;color:{{ tenue }};">
+          💧 {{ m.pioggia_prob }}%{% if m.pioggia_mm >= 0.5 %} ({{ "%.0f"|format(m.pioggia_mm) }} mm){% endif %} &nbsp;·&nbsp; 💨 {{ m.vento }} km/h &nbsp;·&nbsp; UV {{ m.uv }} &nbsp;·&nbsp; 🌅 {{ m.alba }} &nbsp;·&nbsp; 🌇 {{ m.tramonto }}
+          {%- if m.ombrello %}<br><b style="color:{{ inchiostro }};">☂️ Porta l'ombrello!</b>{% endif %}
+        </td></tr>
+      </table>
+    </td></tr>
+    {%- elif "meteo" in errori %}{{ non_disponibile("Meteo") }}{% endif %}
+
+  {#- ── Agenda ── #}
+  {%- elif sezione == "agenda" and (d.agenda or "agenda" in errori) %}
+    {{ titolo("Agenda di oggi", "📅") }}
+    {%- if d.agenda %}
+    <tr><td class="px" style="padding:0 28px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        {%- for e in d.agenda.eventi %}
+        <tr>
+          <td width="96" valign="top" style="padding:9px 0;border-bottom:1px solid {{ linea }};font-family:{{ font }};font-size:14px;font-weight:600;color:{{ accento }};white-space:nowrap;">{{ e.inizio ~ "–" ~ e.fine if e.inizio else "Tutto il giorno" }}</td>
+          <td valign="top" style="padding:9px 0 9px 12px;border-bottom:1px solid {{ linea }};font-family:{{ font }};font-size:15px;color:{{ inchiostro }};">
+            {{ e.titolo }}{% if e.luogo and d.agenda.mostra_luogo %}<div style="font-size:13px;color:{{ tenue }};margin-top:2px;">📍 {{ e.luogo }}</div>{% endif %}
+          </td>
+        </tr>
+        {%- else %}
+        <tr><td style="padding:6px 0;font-family:{{ font }};font-size:15px;color:{{ inchiostro }};">Nessun impegno in calendario 🎉</td></tr>
+        {%- endfor %}
+      </table>
+    </td></tr>
+    {%- else %}{{ non_disponibile("Agenda") }}{% endif %}
+
+  {#- ── Mercati ── #}
+  {%- elif sezione == "mercati" %}
+    {{ titolo("Mercati", "📈") }}
+    {%- if d.mercati %}
+    {%- if migliore and peggiore %}
+    <tr><td class="px" style="padding:0 28px 6px 28px;font-family:{{ font }};font-size:14px;color:{{ inchiostro }};">
+      <span style="color:{{ migliore.var1|colore }};">▲</span> Migliore: <b>{{ migliore.nome }}</b> <span style="color:{{ migliore.var1|colore }};">{{ migliore.var1|perc }}</span>
+      &nbsp;&nbsp;<span style="color:{{ peggiore.var1|colore }};">▼</span> Peggiore: <b>{{ peggiore.nome }}</b> <span style="color:{{ peggiore.var1|colore }};">{{ peggiore.var1|perc }}</span>
+    </td></tr>
+    {%- endif %}
+    {%- for g in d.mercati.gruppi %}
+    <tr><td class="px" style="padding:14px 28px 0 28px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td colspan="2" style="padding:0 0 6px 0;font-family:{{ font }};font-size:15px;font-weight:700;color:{{ inchiostro }};">{{ g.titolo }}</td>
+          <td colspan="3" align="right" style="padding:0 0 6px 0;font-family:{{ font }};font-size:12px;color:{{ tenue }};">{% if g.data %}chiusura {{ g.data|data_breve }}{% endif %}</td>
+        </tr>
+        <tr style="font-family:{{ font }};font-size:11px;color:{{ tenue }};text-transform:uppercase;letter-spacing:0.5px;">
+          <td style="padding:4px 0;border-bottom:1px solid {{ linea }};"></td>
+          <td width="92" align="right" style="padding:4px 0;border-bottom:1px solid {{ linea }};">Prezzo</td>
+          <td width="62" align="right" style="padding:4px 0;border-bottom:1px solid {{ linea }};">Oggi</td>
+          <td width="58" align="right" class="m-nascondi" style="padding:4px 0;border-bottom:1px solid {{ linea }};">5 gg</td>
+          <td width="114" align="right" style="padding:4px 0 4px 10px;border-bottom:1px solid {{ linea }};">1 mese</td>
+        </tr>
+        {%- for r in g.righe %}
+        <tr style="font-family:{{ font }};">
+          <td style="padding:8px 0;border-bottom:1px solid {{ linea }};font-size:14px;color:{{ inchiostro }};">{{ r.nome }}</td>
+          {%- if r.prezzo is not none %}
+          <td align="right" style="padding:8px 0 8px 8px;border-bottom:1px solid {{ linea }};font-size:14px;color:{{ inchiostro }};white-space:nowrap;">{{ r.prezzo|numero(r.decimali) }}</td>
+          <td align="right" style="padding:8px 0 8px 8px;border-bottom:1px solid {{ linea }};font-size:14px;font-weight:700;color:{{ r.var1|colore }};white-space:nowrap;">{{ r.var1|perc if r.var1 is not none else "–" }}</td>
+          <td align="right" class="m-nascondi" style="padding:8px 0 8px 8px;border-bottom:1px solid {{ linea }};font-size:13px;color:{{ r.var5|colore }};white-space:nowrap;">{{ r.var5|perc if r.var5 is not none else "–" }}</td>
+          <td align="right" style="padding:4px 0 4px 10px;border-bottom:1px solid {{ linea }};">{% if r.grafico %}<img class="spark" src="{{ r.grafico }}" width="104" height="28" alt="{{ r.var1m|perc if r.var1m is not none else '' }}" style="display:block;border:0;">{% endif %}</td>
+          {%- else %}
+          <td colspan="4" align="right" style="padding:8px 0;border-bottom:1px solid {{ linea }};font-size:13px;color:{{ tenue }};">n.d.</td>
+          {%- endif %}
+        </tr>
+        {%- endfor %}
+      </table>
+    </td></tr>
+    {%- endfor %}
+    <tr><td class="px" style="padding:10px 28px 0 28px;font-family:{{ font }};font-size:12px;color:{{ tenue }};font-style:italic;">Dati informativi all'ultima chiusura disponibile, non sono consigli d'investimento.</td></tr>
+    {%- elif "mercati" in errori %}{{ non_disponibile("Mercati") }}{% endif %}
+
+  {#- ── Crescita personale ── #}
+  {%- elif sezione == "crescita" and d.crescita %}{% set c = d.crescita %}
+    {{ titolo("Crescita personale", "🌱") }}
+    {%- if c.inglese %}{% set i = c.inglese %}
+    <tr><td class="px" style="padding:0 28px 12px 28px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef4fb;border-radius:12px;">
+        <tr><td style="padding:16px 18px;font-family:{{ font }};">
+          <div style="font-size:12px;color:#3b6ea5;font-weight:700;letter-spacing:0.5px;">🇬🇧 INGLESE DEL GIORNO · {{ i.tipo|upper }}</div>
+          <div style="font-size:21px;font-weight:700;color:{{ inchiostro }};margin-top:6px;">{{ i.frase }}</div>
+          <div style="font-size:15px;color:{{ inchiostro }};margin-top:2px;">{{ i.significato }}</div>
+          <div style="font-size:14px;color:{{ tenue }};font-style:italic;margin-top:8px;">“{{ i.esempio }}”</div>
+        </td></tr>
+      </table>
+    </td></tr>
+    {%- endif %}
+    {%- if c.pillola %}{% set p = c.pillola %}
+    <tr><td class="px" style="padding:0 28px 12px 28px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fbf3e8;border-radius:12px;">
+        <tr><td style="padding:16px 18px;font-family:{{ font }};">
+          <div style="font-size:12px;color:{{ accento }};font-weight:700;letter-spacing:0.5px;">💡 LA PILLOLA DEL GIORNO</div>
+          <div style="font-size:17px;font-weight:700;color:{{ inchiostro }};margin-top:6px;">{{ p.emoji }} {{ p.titolo }}</div>
+          <div style="font-size:15px;line-height:1.5;color:{{ inchiostro }};margin-top:4px;">{{ p.testo }}</div>
+        </td></tr>
+      </table>
+    </td></tr>
+    {%- endif %}
+    {%- if c.obiettivi %}
+    <tr><td class="px" style="padding:0 28px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid {{ linea }};border-radius:12px;">
+        <tr><td style="padding:14px 18px 4px 18px;font-family:{{ font }};font-size:12px;font-weight:700;letter-spacing:0.5px;color:{{ accento }};">🎯 OBIETTIVI DELLA SETTIMANA</td></tr>
+        {%- for o in c.obiettivi %}{% set pct = [100, (o.fatte * 100 / o.obiettivo)|round|int]|min %}
+        <tr><td style="padding:8px 18px 12px 18px;font-family:{{ font }};">
+          <div style="font-size:14px;color:{{ inchiostro }};"><b>{{ o.emoji }} {{ o.nome }}</b> · {{ o.fatte }}/{{ o.obiettivo }} fatte{% if o.oggi %} · {{ o.oggi }} oggi{% endif %}{% if o.in_programma %} · {{ o.in_programma }} in programma{% endif %}</div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px;background:{{ linea }};border-radius:6px;"><tr>
+            {%- if pct > 0 %}<td width="{{ pct }}%" style="height:8px;background:{{ '#1a7f37' if pct >= 100 else accento }};border-radius:6px;font-size:0;line-height:0;">&nbsp;</td>{% endif %}
+            {%- if pct < 100 %}<td style="height:8px;font-size:0;line-height:0;">&nbsp;</td>{% endif %}
+          </tr></table>
+          {%- if o.settimana_scorsa is not none %}<div style="font-size:12px;color:{{ tenue }};margin-top:4px;">Settimana scorsa: {{ o.settimana_scorsa }}/{{ o.obiettivo }} {{ "✅" if o.settimana_scorsa >= o.obiettivo else "➖" }}</div>{% endif %}
+        </td></tr>
+        {%- endfor %}
+      </table>
+    </td></tr>
+    {%- endif %}
+
+  {#- ── Notizie ── #}
+  {%- elif sezione == "news" %}
+    {{ titolo("Notizie", "📰") }}
+    {%- if d.news %}
+    {%- for arg in d.news.argomenti %}
+    <tr><td class="px" style="padding:{{ '0' if loop.first else '14px' }} 28px 0 28px;">
+      <div style="font-family:{{ font }};font-size:15px;font-weight:700;color:{{ inchiostro }};padding-bottom:4px;border-bottom:2px solid {{ inchiostro }};">{{ arg.nome }}</div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        {%- for a in arg.articoli %}
+        <tr><td style="padding:10px 0;{% if not loop.last %}border-bottom:1px solid {{ linea }};{% endif %}font-family:{{ font }};">
+          <a href="{{ a.link }}" style="font-size:15px;line-height:1.4;font-weight:600;color:{{ inchiostro }};text-decoration:none;">{{ a.titolo }}</a>
+          <div style="font-size:12px;color:{{ tenue }};margin-top:3px;">{{ a.fonte }}{% if a.ts %} · {{ a.ts|fa_quanto }}{% endif %}</div>
+        </td></tr>
+        {%- endfor %}
+      </table>
+    </td></tr>
+    {%- endfor %}
+    {%- elif "news" in errori %}{{ non_disponibile("Notizie") }}{% endif %}
+  {%- endif %}
+  {%- endfor %}
+
+  {#- ── Piè di pagina ── #}
+  <tr><td class="px" style="padding:30px 28px 26px 28px;">
+    <div style="border-top:1px solid {{ linea }};padding-top:14px;font-family:{{ font }};font-size:12px;color:{{ tenue }};text-align:center;">
+      ☕ 0800 · il tuo riepilogo del mattino<br>Meteo Open-Meteo · Quotazioni Yahoo Finance · Notizie dai feed RSS delle testate
+    </div>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>

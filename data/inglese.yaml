@@ -1,0 +1,73 @@
+# Una voce al giorno, a rotazione. Aggiungine quante vuoi.
+# tipo: modo di dire | phrasal verb | falso amico
+
+- {frase: "touch base", tipo: "modo di dire", significato: "sentirsi per aggiornarsi brevemente", esempio: "Let's touch base on Friday about the budget."}
+- {frase: "actually", tipo: "falso amico", significato: "in realtà (attualmente = currently)", esempio: "Actually, I've never been to London."}
+- {frase: "follow up on", tipo: "phrasal verb", significato: "dare seguito, ricontattare", esempio: "I'm following up on my email from last week."}
+- {frase: "circle back", tipo: "modo di dire", significato: "riprendere un argomento più tardi", esempio: "I'll circle back to you once I have the numbers."}
+- {frase: "eventually", tipo: "falso amico", significato: "alla fine, prima o poi (eventualmente = possibly)", esempio: "It took a while, but eventually we signed the deal."}
+- {frase: "figure out", tipo: "phrasal verb", significato: "capire, trovare una soluzione", esempio: "We need to figure out why sales dropped."}
+- {frase: "keep me in the loop", tipo: "modo di dire", significato: "tienimi aggiornato", esempio: "Please keep me in the loop on the client's feedback."}
+- {frase: "sensible", tipo: "falso amico", significato: "sensato, ragionevole (sensibile = sensitive)", esempio: "That's a sensible decision."}
+- {frase: "come up with", tipo: "phrasal verb", significato: "inventare, proporre un'idea", esempio: "She came up with a brilliant solution."}
+- {frase: "heads-up", tipo: "modo di dire", significato: "preavviso, avvertimento", esempio: "Thanks for the heads-up about the delay."}
+- {frase: "library", tipo: "falso amico", significato: "biblioteca (libreria = bookshop)", esempio: "I borrowed this book from the library."}
+- {frase: "run out of", tipo: "phrasal verb", significato: "rimanere senza", esempio: "We're running out of time."}
+- {frase: "ballpark figure", tipo: "modo di dire", significato: "cifra indicativa, stima approssimativa", esempio: "Can you give me a ballpark figure for the project?"}
+- {frase: "to pretend", tipo: "falso amico", significato: "fingere (pretendere = to demand)", esempio: "He pretended not to see me."}
+- {frase: "put off", tipo: "phrasal verb", significato: "rimandare", esempio: "Don't put off until tomorrow what you can do today."}
+- {frase: "on the same page", tipo: "modo di dire", significato: "essere allineati, d'accordo", esempio: "Before the meeting, let's make sure we're on the same page."}
+- {frase: "argument", tipo: "falso amico", significato: "litigio, discussione accesa (argomento = topic)", esempio: "They had an argument about money."}
+- {frase: "carry out", tipo: "phrasal verb", significato: "eseguire, svolgere", esempio: "The audit was carried out last month."}
+- {frase: "the ball is in your court", tipo: "modo di dire", significato: "ora tocca a te decidere", esempio: "We sent our offer: the ball is in their court now."}
+- {frase: "to attend", tipo: "falso amico", significato: "partecipare a (attendere = to wait)", esempio: "Over 200 people attended the conference."}
+- {frase: "look forward to", tipo: "phrasal verb", significato: "non vedere l'ora di (seguito da -ing)", esempio: "I look forward to hearing from you."}
+- {frase: "hit the ground running", tipo: "modo di dire", significato: "partire subito a pieno ritmo", esempio: "The new hire hit the ground running."}
+- {frase: "factory", tipo: "falso amico", significato: "fabbrica (fattoria = farm)", esempio: "The factory employs 500 people."}
+- {frase: "reach out to", tipo: "phrasal verb", significato: "contattare", esempio: "Feel free to reach out if you have any questions."}
+- {frase: "low-hanging fruit", tipo: "modo di dire", significato: "risultati facili da ottenere", esempio: "Let's start with the low-hanging fruit."}
+- {frase: "education", tipo: "falso amico", significato: "istruzione (educazione, buone maniere = manners)", esempio: "She has a university education."}
+- {frase: "narrow down", tipo: "phrasal verb", significato: "restringere le opzioni", esempio: "We narrowed it down to three candidates."}
+- {frase: "move the needle", tipo: "modo di dire", significato: "fare una differenza concreta", esempio: "This campaign didn't really move the needle."}
+- {frase: "fabric", tipo: "falso amico", significato: "tessuto (fabbrica = factory)", esempio: "This jacket is made of a waterproof fabric."}
+- {frase: "sort out", tipo: "phrasal verb", significato: "sistemare, risolvere", esempio: "I'll sort out the invoice issue today."}
+- {frase: "cut to the chase", tipo: "modo di dire", significato: "venire al punto", esempio: "Let me cut to the chase: we're over budget."}
+- {frase: "to realize", tipo: "falso amico", significato: "rendersi conto (realizzare un progetto = to carry out)", esempio: "I didn't realize it was so late."}
+- {frase: "catch up", tipo: "phrasal verb", significato: "mettersi in pari, aggiornarsi a vicenda", esempio: "Let's grab a coffee and catch up."}
+- {frase: "go the extra mile", tipo: "modo di dire", significato: "fare più del dovuto", esempio: "She always goes the extra mile for her clients."}
+- {frase: "morbid", tipo: "falso amico", significato: "morboso, macabro (morbido = soft)", esempio: "He has a morbid interest in crime stories."}
+- {frase: "turn down", tipo: "phrasal verb", significato: "rifiutare", esempio: "She turned down the job offer."}
+- {frase: "in a nutshell", tipo: "modo di dire", significato: "in poche parole", esempio: "In a nutshell, sales are up 10%."}
+- {frase: "to annoy", tipo: "falso amico", significato: "infastidire (annoiare = to bore)", esempio: "The noise really annoys me."}
+- {frase: "point out", tipo: "phrasal verb", significato: "far notare", esempio: "He pointed out a mistake in the contract."}
+- {frase: "learn the ropes", tipo: "modo di dire", significato: "imparare come funzionano le cose", esempio: "It took me a month to learn the ropes."}
+- {frase: "brave", tipo: "falso amico", significato: "coraggioso (bravo = good, skilled)", esempio: "It was brave of you to speak up."}
+- {frase: "take over", tipo: "phrasal verb", significato: "subentrare, prendere il controllo", esempio: "Who will take over the project while you're away?"}
+- {frase: "bite the bullet", tipo: "modo di dire", significato: "stringere i denti e affrontare una cosa sgradevole", esempio: "We have to bite the bullet and cut costs."}
+- {frase: "delusion", tipo: "falso amico", significato: "illusione, convinzione errata (delusione = disappointment)", esempio: "He's under the delusion that he's always right."}
+- {frase: "fall behind", tipo: "phrasal verb", significato: "restare indietro", esempio: "We're falling behind schedule."}
+- {frase: "call it a day", tipo: "modo di dire", significato: "chiudere la giornata di lavoro", esempio: "It's 7 pm, let's call it a day."}
+- {frase: "break the ice", tipo: "modo di dire", significato: "rompere il ghiaccio", esempio: "He told a joke to break the ice."}
+- {frase: "back to square one", tipo: "modo di dire", significato: "punto e a capo", esempio: "The client rejected the proposal, so we're back to square one."}
+- {frase: "up in the air", tipo: "modo di dire", significato: "ancora incerto, da decidere", esempio: "The launch date is still up in the air."}
+- {frase: "on short notice", tipo: "modo di dire", significato: "con poco preavviso", esempio: "Thanks for joining on such short notice."}
+- {frase: "play it by ear", tipo: "modo di dire", significato: "improvvisare, decidere al momento", esempio: "I don't know how long it'll take, let's play it by ear."}
+- {frase: "rule of thumb", tipo: "modo di dire", significato: "regola pratica", esempio: "As a rule of thumb, reply to emails within 24 hours."}
+- {frase: "take it with a grain of salt", tipo: "modo di dire", significato: "prendere con le pinze", esempio: "Take those forecasts with a grain of salt."}
+- {frase: "out of the blue", tipo: "modo di dire", significato: "all'improvviso, di punto in bianco", esempio: "He called me out of the blue."}
+- {frase: "a no-brainer", tipo: "modo di dire", significato: "una scelta ovvia", esempio: "At that price, buying it was a no-brainer."}
+- {frase: "take a rain check", tipo: "modo di dire", significato: "rimandare un invito a un'altra volta", esempio: "I can't make it tonight, can I take a rain check?"}
+- {frase: "red tape", tipo: "modo di dire", significato: "burocrazia", esempio: "We lost two weeks because of red tape."}
+- {frase: "the bottom line", tipo: "modo di dire", significato: "il punto essenziale, il risultato netto", esempio: "The bottom line is we need more clients."}
+- {frase: "off the top of my head", tipo: "modo di dire", significato: "così su due piedi", esempio: "Off the top of my head, I'd say about 200 units."}
+- {frase: "see eye to eye", tipo: "modo di dire", significato: "essere d'accordo", esempio: "We don't always see eye to eye, but we work well together."}
+- {frase: "the elephant in the room", tipo: "modo di dire", significato: "il problema evidente che nessuno nomina", esempio: "Let's address the elephant in the room: the deadline."}
+- {frase: "burn the midnight oil", tipo: "modo di dire", significato: "lavorare fino a tarda notte", esempio: "We burned the midnight oil to finish the report."}
+- {frase: "cost an arm and a leg", tipo: "modo di dire", significato: "costare un occhio della testa", esempio: "That car costs an arm and a leg."}
+- {frase: "hit the nail on the head", tipo: "modo di dire", significato: "centrare il punto", esempio: "You hit the nail on the head with that analysis."}
+- {frase: "a piece of cake", tipo: "modo di dire", significato: "un gioco da ragazzi", esempio: "The exam was a piece of cake."}
+- {frase: "spill the beans", tipo: "modo di dire", significato: "vuotare il sacco", esempio: "Come on, spill the beans: who got the promotion?"}
+- {frase: "get cold feet", tipo: "modo di dire", significato: "tirarsi indietro all'ultimo", esempio: "The investor got cold feet and pulled out."}
+- {frase: "keep an eye on", tipo: "modo di dire", significato: "tenere d'occhio", esempio: "Keep an eye on the oil price this week."}
+- {frase: "sit tight", tipo: "modo di dire", significato: "aspettare con pazienza", esempio: "Sit tight, I'll have an answer by tomorrow."}
+- {frase: "a steep learning curve", tipo: "modo di dire", significato: "qualcosa di impegnativo da imparare all'inizio", esempio: "The new software has a steep learning curve."}

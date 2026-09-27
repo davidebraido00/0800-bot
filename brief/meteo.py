@@ -21,7 +21,7 @@ WMO = {
 FASCE = [("Mattina", 9), ("Pomeriggio", 15), ("Sera", 20)]
 
 
-def sezione(cfg: dict, tz: str, oggi: datetime) -> str:
+def raccogli(cfg: dict, tz: str, oggi: datetime) -> dict:
     r = requests.get(
         "https://api.open-meteo.com/v1/forecast",
         params={
@@ -38,23 +38,44 @@ def sezione(cfg: dict, tz: str, oggi: datetime) -> str:
     r.raise_for_status()
     dati = r.json()
     d, h = dati["daily"], dati["hourly"]
-
     emoji, desc = WMO.get(d["weathercode"][0], ("🌡️", ""))
-    righe = [
-        f"*{emoji} Meteo {cfg['citta']}*",
-        f"{desc.capitalize()} · min {d['temperature_2m_min'][0]:.0f}° / max {d['temperature_2m_max'][0]:.0f}°",
-    ]
-    for nome, ora in FASCE:
-        e, _ = WMO.get(h["weathercode"][ora], ("", ""))
-        righe.append(f"  {nome}: {e} {h['temperature_2m'][ora]:.0f}° · pioggia {h['precipitation_probability'][ora]}%")
+    return {
+        "citta": cfg["citta"],
+        "emoji": emoji,
+        "desc": desc.capitalize(),
+        "tmin": round(d["temperature_2m_min"][0]),
+        "tmax": round(d["temperature_2m_max"][0]),
+        "fasce": [
+            {
+                "nome": nome,
+                "emoji": WMO.get(h["weathercode"][ora], ("", ""))[0],
+                "temp": round(h["temperature_2m"][ora]),
+                "pioggia": h["precipitation_probability"][ora],
+            }
+            for nome, ora in FASCE
+        ],
+        "pioggia_prob": d["precipitation_probability_max"][0],
+        "pioggia_mm": d["precipitation_sum"][0],
+        "vento": round(d["wind_speed_10m_max"][0]),
+        "uv": round(d["uv_index_max"][0]),
+        "alba": d["sunrise"][0][-5:],
+        "tramonto": d["sunset"][0][-5:],
+        "ombrello": d["precipitation_probability_max"][0] >= 50,
+    }
 
-    pioggia = d["precipitation_sum"][0]
-    extra = f"💧 {d['precipitation_probability_max'][0]}%"
-    if pioggia >= 0.5:
-        extra += f" ({pioggia:.0f} mm)"
-    extra += f" · 💨 {d['wind_speed_10m_max'][0]:.0f} km/h · UV {d['uv_index_max'][0]:.0f}"
-    righe.append(extra)
-    righe.append(f"🌅 {d['sunrise'][0][-5:]} · 🌇 {d['sunset'][0][-5:]}")
-    if d["precipitation_probability_max"][0] >= 50:
+
+def whatsapp(m: dict) -> str:
+    righe = [
+        f"*{m['emoji']} Meteo {m['citta']}*",
+        f"{m['desc']} · min {m['tmin']}° / max {m['tmax']}°",
+    ]
+    for f in m["fasce"]:
+        righe.append(f"  {f['nome']}: {f['emoji']} {f['temp']}° · pioggia {f['pioggia']}%")
+    extra = f"💧 {m['pioggia_prob']}%"
+    if m["pioggia_mm"] >= 0.5:
+        extra += f" ({m['pioggia_mm']:.0f} mm)"
+    righe.append(extra + f" · 💨 {m['vento']} km/h · UV {m['uv']}")
+    righe.append(f"🌅 {m['alba']} · 🌇 {m['tramonto']}")
+    if m["ombrello"]:
         righe.append("☂️ _Porta l'ombrello!_")
     return "\n".join(righe)
