@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import re
 import time
 
 import requests
@@ -21,8 +22,9 @@ def _callmebot(testo: str) -> None:
         timeout=60,
     )
     r.raise_for_status()
-    if "ERROR" in r.text.upper():
-        raise RuntimeError(f"CallMeBot: {r.text[:300]}")
+    # CallMeBot risponde sempre 200: l'esito è nel testo (es. limite di 50 messaggi ogni 4 ore)
+    if "queued" not in r.text.lower():
+        raise RuntimeError(f"CallMeBot: {re.sub(r'<[^>]+>', ' ', r.text)[:300]}")
 
 
 def _twilio(testo: str) -> None:
