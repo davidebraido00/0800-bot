@@ -1,0 +1,7 @@
+requests>=2.31
+feedparser>=6.0
+yfinance>=0.2.40
+PyYAML>=6.0
+python-dotenv>=1.0
+icalendar>=6.0
+recurring-ical-events>=3.0

@@ -1,0 +1,36 @@
+name: 0800
+
+on:
+  schedule:
+    # GitHub usa UTC: 06:00 UTC = 8:00 ora legale, 07:00 UTC = 8:00 ora solare.
+    # Girano entrambi; lo script invia solo quello che cade alle 8 a Roma.
+    - cron: "0 6 * * *"
+    - cron: "0 7 * * *"
+  workflow_dispatch: {}  # pulsante "Run workflow" per test manuali
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Invia
+        env:
+          WHATSAPP_PROVIDER: ${{ vars.WHATSAPP_PROVIDER || 'callmebot' }}
+          WHATSAPP_TO: ${{ secrets.WHATSAPP_TO }}
+          CALLMEBOT_APIKEY: ${{ secrets.CALLMEBOT_APIKEY }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_FROM: ${{ secrets.TWILIO_FROM }}
+          GOOGLE_CALENDAR_ICS: ${{ secrets.GOOGLE_CALENDAR_ICS }}
+        # Avvio manuale: invia subito. Avvio schedulato: solo se sono le 8 a Roma.
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            python main.py
+          else
+            python main.py --solo-alle 8
+          fi

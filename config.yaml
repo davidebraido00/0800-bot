@@ -1,0 +1,78 @@
+# Configurazione del messaggio mattutino.
+# Modifica liberamente: una sezione rimossa o vuota viene saltata.
+
+timezone: Europe/Rome
+
+# Ordine delle sezioni nel messaggio
+ordine: [meteo, agenda, mercati, news]
+
+meteo:
+  citta: Conegliano
+  lat: 45.8870
+  lon: 12.2970
+
+agenda:
+  # Il link iCal privato va nel secret GOOGLE_CALENDAR_ICS (vedi README).
+  mostra_luogo: true
+
+news:
+  per_argomento: 5
+  max_ore: 36          # ignora articoli più vecchi di così
+  argomenti:
+    - nome: 💶 Economia e finanza
+      feed:
+        - https://www.ilsole24ore.com/rss/economia.xml
+        - https://www.ilsole24ore.com/rss/finanza.xml
+        - https://www.ansa.it/sito/notizie/economia/economia_rss.xml
+    - nome: 🇮🇹 Italia e politica
+      feed:
+        - https://www.ansa.it/sito/notizie/topnews/topnews_rss.xml
+        - https://www.ansa.it/sito/notizie/politica/politica_rss.xml
+    - nome: 🌍 Esteri
+      feed:
+        - https://www.ansa.it/sito/notizie/mondo/mondo_rss.xml
+    - nome: 🤖 Tecnologia e AI
+      feed:
+        - https://www.ilsole24ore.com/rss/tecnologia.xml
+        - https://www.hwupgrade.it/rss_news.xml
+    - nome: 📍 Conegliano e Treviso
+      per_argomento: 4
+      link: false        # i link di Google News sono lunghissimi
+      feed:
+        - https://news.google.com/rss/search?q=Conegliano+OR+Treviso+when:1d&hl=it&gl=IT&ceid=IT:it
+
+mercati:
+  # Simboli Yahoo Finance (cercali su https://finance.yahoo.com).
+  # Per ogni voce: prezzo, variazione del giorno e degli ultimi 5 giorni di borsa.
+  gruppi:
+    🇮🇹 Piazza Affari:
+      FTSE MIB: FTSEMIB.MI
+      Eni: ENI.MI
+      Intesa Sanpaolo: ISP.MI
+      UniCredit: UCG.MI
+      Enel: ENEL.MI
+      Stellantis: STLAM.MI
+      Ferrari: RACE.MI
+    🇺🇸 USA:
+      S&P 500: ^GSPC
+      Nasdaq: ^IXIC
+      Apple: AAPL
+      Microsoft: MSFT
+      Nvidia: NVDA
+      Amazon: AMZN
+    🌐 ETF, materie prime, cambi:
+      Euro Stoxx 50: ^STOXX50E
+      Vanguard FTSE All-World (VWCE): VWCE.DE
+      iShares MSCI World (SWDA): SWDA.MI
+      Oro ($/oz): GC=F
+      Petrolio Brent ($): BZ=F
+      EUR/USD: EURUSD=X
+    🪙 Crypto:
+      Bitcoin (€): BTC-EUR
+      Ethereum (€): ETH-EUR
+
+whatsapp:
+  # Un messaggio per area; quelli più lunghi di così vengono spezzati.
+  max_caratteri: 1500
+  # Attesa tra un messaggio e l'altro: CallMeBot unisce e tronca quelli ravvicinati.
+  pausa_secondi: 10
