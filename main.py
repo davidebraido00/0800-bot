@@ -1,7 +1,7 @@
-"""0800: raccoglie i dati del mattino e li invia su WhatsApp e via email.
+"""0800: raccoglie i dati del mattino e li invia su Telegram, via email (e WhatsApp, se attivo).
 
 Uso:
-    python main.py --dry-run                # anteprima: WhatsApp a schermo + anteprima.html
+    python main.py --dry-run                # anteprima: messaggi a schermo + anteprima.html
     python main.py                          # invia su tutti i canali configurati
     python main.py --canali email           # invia solo l'email (utile per i test)
     python main.py --alle 8 --offset 2      # invio programmato (GitHub Actions): attende le 8 se in anticipo
@@ -20,10 +20,11 @@ from zoneinfo import ZoneInfo
 import yaml
 from dotenv import load_dotenv
 
-from brief import agenda, crescita, meteo, mercati, news, posta, whatsapp
+from brief import agenda, crescita, meteo, mercati, news, posta, telegram, whatsapp
 from brief.fmt import GIORNI, MESI
 
-# Ogni modulo espone raccogli(cfg, tz, oggi) -> dati | None e whatsapp(dati) -> str | list[str]
+# Ogni modulo espone raccogli(cfg, tz, oggi) -> dati | None
+# e un formattatore per canale chat: whatsapp(dati) / telegram(dati) -> str | list[str]
 SEZIONI = {"meteo": meteo, "agenda": agenda, "mercati": mercati, "crescita": crescita, "news": news}
 
 log = logging.getLogger("0800")
@@ -43,15 +44,23 @@ def raccogli(cfg: dict, oggi: datetime) -> tuple[dict, list[str]]:
     return dati, errori
 
 
-def blocchi_whatsapp(dati: dict, errori: list[str], oggi: datetime) -> list[str]:
-    blocchi = [f"☕ *Buongiorno! {GIORNI[oggi.weekday()]} {oggi.day} {MESI[oggi.month - 1]}*"]
+# Intestazione e riga di errore nella sintassi di ciascun canale
+STILI = {
+    "whatsapp": ("☕ *Buongiorno! {data}*", "_({sezione}: dati non disponibili oggi)_"),
+    "telegram": ("☕ <b>Buongiorno! {data}</b>", "<i>({sezione}: dati non disponibili oggi)</i>"),
+}
+
+
+def blocchi(dati: dict, errori: list[str], oggi: datetime, formato: str) -> list[str]:
+    intestazione, errore = STILI[formato]
+    out = [intestazione.format(data=f"{GIORNI[oggi.weekday()]} {oggi.day} {MESI[oggi.month - 1]}")]
     for chiave, d in dati.items():
         if chiave in errori:
-            blocchi.append(f"_({chiave}: dati non disponibili oggi)_")
+            out.append(errore.format(sezione=chiave))
         elif d:
-            testo = SEZIONI[chiave].whatsapp(d)
-            blocchi.extend([testo] if isinstance(testo, str) else testo)
-    return blocchi
+            testo = getattr(SEZIONI[chiave], formato)(d)
+            out.extend([testo] if isinstance(testo, str) else testo)
+    return out
 
 
 def attendi_orario(tz: ZoneInfo, ora: int, offset: int | None) -> bool:
@@ -86,7 +95,7 @@ def whatsapp_configurato() -> bool:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true", help="anteprima senza inviare")
-    ap.add_argument("--canali", help="es. 'email' o 'whatsapp,email' (default: da config.yaml)")
+    ap.add_argument("--canali", help="es. 'telegram' o 'telegram,email' (default: da config.yaml)")
     ap.add_argument("--alle", type=int, metavar="ORA", help="invio programmato: attende quest'ora locale")
     ap.add_argument("--offset", type=int, metavar="ORE", help="con --alle: differenza da UTC attesa (2 legale, 1 solare)")
     ap.add_argument("--segna", metavar="FILE", help="crea questo file se almeno un canale è stato inviato")
@@ -101,45 +110,51 @@ def main() -> int:
         return 0
     oggi = datetime.now(tz)
 
-    canali = args.canali.split(",") if args.canali else cfg.get("canali", ["whatsapp"])
+    canali = args.canali.split(",") if args.canali else cfg.get("canali", ["telegram", "email"])
     dati, errori = raccogli(cfg, oggi)
     wa = cfg.get("whatsapp") or {}
-    blocchi = blocchi_whatsapp(dati, errori, oggi)
-    messaggi = whatsapp.impacchetta(blocchi, wa.get("max_caratteri", 1500))
+    msg_telegram = telegram.impacchetta(blocchi(dati, errori, oggi, "telegram"))
+    blocchi_wa = blocchi(dati, errori, oggi, "whatsapp")  # anche testo semplice dell'email
+    msg_whatsapp = whatsapp.impacchetta(blocchi_wa, wa.get("max_caratteri", 1500))
 
     if args.dry_run:
-        for i, m in enumerate(messaggi, 1):
-            print(f"\n──────── messaggio {i}/{len(messaggi)} · {len(m)} caratteri ────────\n{m}")
+        for canale, messaggi in (("telegram", msg_telegram), ("whatsapp", msg_whatsapp)):
+            if canale not in canali:
+                continue
+            for i, m in enumerate(messaggi, 1):
+                print(f"\n──────── {canale} {i}/{len(messaggi)} · {len(m)} caratteri ────────\n{m}")
         oggetto, html, _ = posta.componi(dati, errori, oggi, cfg, inline=True)
         anteprima = Path(__file__).with_name("anteprima.html")
         anteprima.write_text(html, encoding="utf-8")
         print(f"\n──────── email ────────\nOggetto: {oggetto}\nAnteprima: {anteprima}")
         return 0
 
+    def invia_email():
+        oggetto, html, immagini = posta.componi(dati, errori, oggi, cfg)
+        posta.invia(oggetto, html, "\n\n".join(blocchi_wa), immagini)
+        return oggetto
+
+    # canale -> (configurato?, funzione di invio, dettaglio per il log, variabili richieste)
+    disponibili = {
+        "telegram": (telegram.configurato(), lambda: telegram.invia(msg_telegram),
+                     f"{len(msg_telegram)} messaggi", "TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID"),
+        "email": (posta.configurata(), invia_email, "", "EMAIL_FROM / EMAIL_APP_PASSWORD"),
+        "whatsapp": (whatsapp_configurato(), lambda: whatsapp.invia(msg_whatsapp, wa.get("pausa_secondi", 10)),
+                     f"{len(msg_whatsapp)} messaggi", "CALLMEBOT_APIKEY"),
+    }
     inviati, falliti = [], []
-    if "whatsapp" in canali:
-        if not whatsapp_configurato():
-            log.warning("WhatsApp non configurato: salto.")
-        else:
-            try:
-                whatsapp.invia(messaggi, wa.get("pausa_secondi", 10))
-                log.info("WhatsApp: inviati %d messaggi.", len(messaggi))
-                inviati.append("whatsapp")
-            except Exception:
-                log.exception("Invio WhatsApp fallito")
-                falliti.append("whatsapp")
-    if "email" in canali:
-        if not posta.configurata():
-            log.warning("Email non configurata (EMAIL_FROM / EMAIL_APP_PASSWORD): salto.")
-        else:
-            try:
-                oggetto, html, immagini = posta.componi(dati, errori, oggi, cfg)
-                posta.invia(oggetto, html, "\n\n".join(blocchi), immagini)
-                log.info("Email inviata: %s", oggetto)
-                inviati.append("email")
-            except Exception:
-                log.exception("Invio email fallito")
-                falliti.append("email")
+    for canale in canali:
+        ok, invia, dettaglio, variabili = disponibili[canale]
+        if not ok:
+            log.warning("%s non configurato (%s): salto.", canale, variabili)
+            continue
+        try:
+            risultato = invia()
+            log.info("%s: inviato %s", canale, risultato or dettaglio)
+            inviati.append(canale)
+        except Exception:
+            log.exception("Invio %s fallito", canale)
+            falliti.append(canale)
     if args.segna and inviati:
         Path(args.segna).write_text(f"{oggi:%Y-%m-%d} {','.join(inviati)}\n")
     if not inviati and not falliti:

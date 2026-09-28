@@ -10,6 +10,8 @@ import icalendar
 import recurring_ical_events
 import requests
 
+from .fmt import esc
+
 
 def calendari() -> list[str]:
     return [u.strip() for u in os.environ.get("GOOGLE_CALENDAR_ICS", "").split(",") if u.strip()]
@@ -68,5 +70,18 @@ def whatsapp(a: dict) -> str:
         riga = f"• {quando} {e['titolo']}"
         if e["luogo"] and a["mostra_luogo"]:
             riga += f" 📍{e['luogo']}"
+        righe.append(riga)
+    return "\n".join(righe)
+
+
+def telegram(a: dict) -> str:
+    righe = ["<b>📅 Agenda di oggi</b>"]
+    if not a["eventi"]:
+        righe.append("Nessun impegno in calendario 🎉")
+    for e in a["eventi"]:
+        quando = f"{e['inizio']}–{e['fine']}" if e["inizio"] else "Tutto il giorno"
+        riga = f"• <b>{quando}</b> {esc(e['titolo'])}"
+        if e["luogo"] and a["mostra_luogo"]:
+            riga += f" <i>📍 {esc(e['luogo'])}</i>"
         righe.append(riga)
     return "\n".join(righe)

@@ -3,8 +3,8 @@
 
 timezone: Europe/Rome
 
-# Dove inviare il riepilogo
-canali: [whatsapp, email]
+# Dove inviare il riepilogo: telegram, email, whatsapp (CallMeBot, disattivato: poco affidabile)
+canali: [telegram, email]
 
 # Ordine delle sezioni (vale per WhatsApp e per l'email)
 ordine: [meteo, agenda, mercati, crescita, news]

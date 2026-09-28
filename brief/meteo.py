@@ -5,6 +5,8 @@ from datetime import datetime
 
 import requests
 
+from .fmt import esc
+
 # Codici meteo WMO -> (emoji, descrizione)
 WMO = {
     0: ("☀️", "sereno"), 1: ("🌤️", "poco nuvoloso"), 2: ("⛅", "parz. nuvoloso"),
@@ -78,4 +80,20 @@ def whatsapp(m: dict) -> str:
     righe.append(f"🌅 {m['alba']} · 🌇 {m['tramonto']}")
     if m["ombrello"]:
         righe.append("☂️ _Porta l'ombrello!_")
+    return "\n".join(righe)
+
+
+def telegram(m: dict) -> str:
+    fasce = " · ".join(f"{f['nome']} {f['emoji']} {f['temp']}°" for f in m["fasce"])
+    extra = f"💧 {m['pioggia_prob']}%"
+    if m["pioggia_mm"] >= 0.5:
+        extra += f" ({m['pioggia_mm']:.0f} mm)"
+    righe = [
+        f"<b>{m['emoji']} Meteo {esc(m['citta'])}</b>",
+        f"{esc(m['desc'])} · <b>{m['tmin']}° / {m['tmax']}°</b>",
+        fasce,
+        f"{extra} · 💨 {m['vento']} km/h · UV {m['uv']} · 🌅 {m['alba']} · 🌇 {m['tramonto']}",
+    ]
+    if m["ombrello"]:
+        righe.append("☂️ <b>Porta l'ombrello!</b>")
     return "\n".join(righe)

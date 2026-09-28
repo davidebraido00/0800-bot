@@ -9,6 +9,8 @@ from urllib.parse import urlparse
 
 import feedparser
 
+from .fmt import esc, fa_quanto, href
+
 log = logging.getLogger(__name__)
 
 FONTI = {
@@ -72,4 +74,19 @@ def whatsapp(n: dict) -> list[str]:
             if arg["link"] and a["link"]:
                 righe.append(f"  {a['link']}")
         out.append("\n".join(righe))
+    return out
+
+
+def telegram(n: dict) -> list[str]:
+    """Le notizie in un messaggio a parte: un blocco per argomento, titoli cliccabili, elenco espandibile."""
+    from .telegram import NUOVO_MESSAGGIO
+
+    out = [NUOVO_MESSAGGIO, "<b>📰 Notizie</b> <i>· tocca un elenco per espanderlo</i>"]
+    for arg in n["argomenti"]:
+        voci = []
+        for a in arg["articoli"]:
+            titolo = f'<a href="{href(a["link"])}">{esc(a["titolo"])}</a>' if a["link"] else esc(a["titolo"])
+            quando = f" · {fa_quanto(a['ts'])}" if a["ts"] else ""
+            voci.append(f"• {titolo} <i>— {esc(a['fonte'])}{quando}</i>")
+        out.append(f"<b>{esc(arg['nome'])}</b>\n<blockquote expandable>" + "\n".join(voci) + "</blockquote>")
     return out

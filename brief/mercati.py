@@ -5,7 +5,7 @@ import tempfile
 
 import yfinance as yf
 
-from .fmt import GIORNI_BREVI, numero, perc
+from .fmt import GIORNI_BREVI, esc, numero, perc
 
 # Cache privata per evitare "database is locked" con altri processi yfinance
 yf.set_tz_cache_location(tempfile.mkdtemp(prefix="yf-"))
@@ -70,4 +70,27 @@ def whatsapp(m: dict) -> str:
             righe.append(riga + ")")
         blocchi.append("\n".join(righe))
     blocchi.append("_Dati informativi, non sono consigli d'investimento._")
+    return "\n\n".join(blocchi)
+
+
+def telegram(m: dict) -> str:
+    blocchi = ["<b>📈 Mercati</b>"]
+    migliore, peggiore = migliore_peggiore(m)
+    if migliore and peggiore:
+        blocchi[0] += (f"\n▲ {esc(migliore['nome'])} <b>{perc(migliore['var1'])}</b>"
+                       f" · ▼ {esc(peggiore['nome'])} <b>{perc(peggiore['var1'])}</b>")
+    for g in m["gruppi"]:
+        data = f" <i>· chiusura {data_breve(g['data'])}</i>" if g["data"] else ""
+        righe = [f"<b>{esc(g['titolo'])}</b>{data}"]
+        for r in g["righe"]:
+            if r["var1"] is None:
+                righe.append(f"▫️ {esc(r['nome'])}: n.d.")
+                continue
+            pallino = "🟢" if r["var1"] > 0.05 else "🔴" if r["var1"] < -0.05 else "⚪"
+            riga = f"{pallino} {esc(r['nome'])} {numero(r['prezzo'], r['decimali'])} <b>{perc(r['var1'])}</b>"
+            if r["var5"] is not None:
+                riga += f" <i>· 5g {perc(r['var5'])}</i>"
+            righe.append(riga)
+        blocchi.append("\n".join(righe))
+    blocchi.append("<i>Dati informativi, non sono consigli d'investimento.</i>")
     return "\n\n".join(blocchi)

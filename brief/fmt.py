@@ -1,6 +1,7 @@
 """Piccoli helper di formattazione all'italiana."""
 from __future__ import annotations
 
+import html
 import time
 
 
@@ -12,6 +13,15 @@ def numero(x: float, decimali: int = 2) -> str:
 
 def perc(x: float) -> str:
     return f"{x:+.1f}%".replace(".", ",")
+
+
+def esc(testo) -> str:
+    """Escape per il parse_mode HTML di Telegram."""
+    return html.escape(str(testo), quote=False)
+
+
+def href(url: str) -> str:
+    return html.escape(url, quote=True)
 
 
 def fa_quanto(ts: float) -> str:

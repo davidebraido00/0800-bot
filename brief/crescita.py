@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 import yaml
 
 from . import agenda
+from .fmt import esc
 
 DATA = Path(__file__).resolve().parent.parent / "data"
 
@@ -78,4 +79,36 @@ def whatsapp(c: dict) -> str:
             if o["settimana_scorsa"] is not None:
                 esito = "✅" if o["settimana_scorsa"] >= o["obiettivo"] else "➖"
                 righe.append(f"  settimana scorsa: {o['settimana_scorsa']}/{o['obiettivo']} {esito}")
+    return "\n".join(righe)
+
+
+def _barra(fatte: int, obiettivo: int) -> str:
+    pieni = min(fatte, obiettivo)
+    return "▰" * pieni + "▱" * (obiettivo - pieni) if obiettivo <= 10 else f"{min(100, fatte * 100 // obiettivo)}%"
+
+
+def telegram(c: dict) -> str:
+    righe = ["<b>🌱 Crescita personale</b>"]
+    if c["inglese"]:
+        i = c["inglese"]
+        righe += ["", f"🇬🇧 <b>{esc(i['frase'])}</b> <i>({esc(i['tipo'])})</i>",
+                  f"= {esc(i['significato'])}", f"<i>“{esc(i['esempio'])}”</i>"]
+    if c["pillola"]:
+        p = c["pillola"]
+        righe += ["", f"{p['emoji']} <b>{esc(p['titolo'])}</b>", esc(p["testo"])]
+    if c["obiettivi"]:
+        righe += ["", "<b>🎯 Obiettivi della settimana</b>"]
+        for o in c["obiettivi"]:
+            riga = f"{o['emoji']} {esc(o['nome'])} {_barra(o['fatte'], o['obiettivo'])} {o['fatte']}/{o['obiettivo']}"
+            extra = []
+            if o["oggi"]:
+                extra.append(f"{o['oggi']} oggi")
+            if o["in_programma"]:
+                extra.append(f"{o['in_programma']} in programma")
+            if extra:
+                riga += f" <i>· {', '.join(extra)}</i>"
+            righe.append(riga)
+            if o["settimana_scorsa"] is not None:
+                esito = "✅" if o["settimana_scorsa"] >= o["obiettivo"] else "➖"
+                righe.append(f"   <i>settimana scorsa: {o['settimana_scorsa']}/{o['obiettivo']} {esito}</i>")
     return "\n".join(righe)

@@ -1,6 +1,6 @@
 # 0800 ☕
 
-Ogni mattina alle 8 ti arriva su **WhatsApp** e via **email**:
+Ogni mattina alle 8 ti arriva su **Telegram** e via **email**:
 
 - **🌤️ Meteo Conegliano**: min/max, mattina/pomeriggio/sera, pioggia, vento, UV, alba e tramonto
 - **📅 Agenda**: i tuoi appuntamenti di oggi da Google Calendar
@@ -8,14 +8,16 @@ Ogni mattina alle 8 ti arriva su **WhatsApp** e via **email**:
 - **🌱 Crescita personale**: una frase di inglese, una pillola di cultura e i tuoi obiettivi settimanali
 - **📰 Notizie**: economia, Italia, esteri, tech/AI, Conegliano e Treviso, con i link
 
-Il messaggio WhatsApp arriva in circa 7 parti, una per area, distanziate di 10 secondi. L'email invece è una pagina unica impaginata, con tabelle e grafici.
+Su Telegram arrivano 2 messaggi: il primo con meteo, agenda, mercati e crescita personale, il secondo con le notizie (titoli cliccabili, elenchi che si espandono con un tocco). Suona solo il primo. L'email invece è una pagina unica impaginata, con tabelle e grafici.
 
-## 1. WhatsApp (CallMeBot, gratis)
+## 1. Telegram
 
-1. Segui https://www.callmebot.com/blog/free-api-whatsapp-messages/: aggiungi il numero del bot ai contatti e mandagli `I allow callmebot to send me messages`.
-2. Ti risponde con la tua **apikey**.
+1. Su Telegram apri [@BotFather](https://t.me/BotFather), scrivi `/newbot` e scegli un nome (es. `0800`) e uno username che finisca in `bot` (es. `davide_0800_bot`).
+2. BotFather ti risponde con il **token** (tipo `123456789:AA...`): mettilo in `.env` come `TELEGRAM_BOT_TOKEN`.
+3. Apri la chat con il tuo nuovo bot e premi **Avvia** (o scrivi `/start`): un bot non può scriverti finché non lo contatti tu.
+4. Esegui `.venv/bin/python -m brief.telegram`: trova il tuo chat id e lo salva in `.env` come `TELEGRAM_CHAT_ID`.
 
-> ⚠️ Il servizio gratuito consegna subito fino a **16 messaggi ogni 4 ore**. Oltre quella soglia li mette in coda, li raggruppa e li consegna in ritardo. Per l'uso quotidiano va bene, ma evita di fare troppi test di fila.
+> WhatsApp (CallMeBot) è ancora supportato: aggiungi `whatsapp` a `canali` in `config.yaml` e configura `WHATSAPP_TO` e `CALLMEBOT_APIKEY`. Il servizio gratuito però consegna subito solo fino a 16 messaggi ogni 4 ore, poi li mette in coda e li raggruppa.
 
 ## 2. Email (Gmail)
 
@@ -51,8 +53,8 @@ In *Settings → Secrets and variables → Actions* aggiungi questi secret:
 
 | Secret | Valore |
 |---|---|
-| `WHATSAPP_TO` | il tuo numero, es. `+393331234567` |
-| `CALLMEBOT_APIKEY` | l'apikey di CallMeBot |
+| `TELEGRAM_BOT_TOKEN` | il token di @BotFather |
+| `TELEGRAM_CHAT_ID` | il tuo chat id (da `python -m brief.telegram`) |
 | `GOOGLE_CALENDAR_ICS` | i link iCal segreti, separati da virgola |
 | `EMAIL_FROM` | l'indirizzo Gmail da cui inviare |
 | `EMAIL_TO` | il destinatario (può essere lo stesso indirizzo) |
@@ -60,7 +62,7 @@ In *Settings → Secrets and variables → Actions* aggiungi questi secret:
 
 Se un canale non è configurato viene saltato, gli altri partono comunque. Se un invio fallisce, GitHub ti manda un'email.
 
-Il workflow parte alle 06:00 e alle 07:00 UTC e invia solo quando in Italia sono le 8, così copre sia l'ora legale che quella solare. Puoi lanciarlo a mano da *Actions → 0800 → Run workflow*.
+GitHub può ritardare o saltare i job programmati, quindi ogni giorno ci sono due avvii: alle **7:41** (attende le 8:00 e invia) e alle **8:11** di riserva (invia solo se il primo non è partito). Un segno salvato nella cache di GitHub evita i doppi invii; ora legale e solare sono gestite da sole. Puoi lanciarlo a mano da *Actions → 0800 → Run workflow*: invia subito.
 
 ## Personalizza
 
