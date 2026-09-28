@@ -73,7 +73,7 @@ def attendi_orario(tz: ZoneInfo, ora: int, offset: int | None) -> bool:
         log.info("Sono le %s: attendo fino alle %02d:00.", adesso.strftime("%H:%M"), ora)
         time.sleep(attesa)
     elif adesso > obiettivo + timedelta(minutes=5):
-        log.warning("GitHub ha avviato il job in ritardo (%s): invio subito.", adesso.strftime("%H:%M"))
+        log.info("Avvio alle %s, dopo le %02d:00: invio subito.", adesso.strftime("%H:%M"), ora)
     return True
 
 
@@ -89,6 +89,7 @@ def main() -> int:
     ap.add_argument("--canali", help="es. 'email' o 'whatsapp,email' (default: da config.yaml)")
     ap.add_argument("--alle", type=int, metavar="ORA", help="invio programmato: attende quest'ora locale")
     ap.add_argument("--offset", type=int, metavar="ORE", help="con --alle: differenza da UTC attesa (2 legale, 1 solare)")
+    ap.add_argument("--segna", metavar="FILE", help="crea questo file se almeno un canale è stato inviato")
     ap.add_argument("--config", default=Path(__file__).with_name("config.yaml"))
     args = ap.parse_args()
 
@@ -115,7 +116,7 @@ def main() -> int:
         print(f"\n──────── email ────────\nOggetto: {oggetto}\nAnteprima: {anteprima}")
         return 0
 
-    falliti = []
+    inviati, falliti = [], []
     if "whatsapp" in canali:
         if not whatsapp_configurato():
             log.warning("WhatsApp non configurato: salto.")
@@ -123,6 +124,7 @@ def main() -> int:
             try:
                 whatsapp.invia(messaggi, wa.get("pausa_secondi", 10))
                 log.info("WhatsApp: inviati %d messaggi.", len(messaggi))
+                inviati.append("whatsapp")
             except Exception:
                 log.exception("Invio WhatsApp fallito")
                 falliti.append("whatsapp")
@@ -134,9 +136,15 @@ def main() -> int:
                 oggetto, html, immagini = posta.componi(dati, errori, oggi, cfg)
                 posta.invia(oggetto, html, "\n\n".join(blocchi), immagini)
                 log.info("Email inviata: %s", oggetto)
+                inviati.append("email")
             except Exception:
                 log.exception("Invio email fallito")
                 falliti.append("email")
+    if args.segna and inviati:
+        Path(args.segna).write_text(f"{oggi:%Y-%m-%d} {','.join(inviati)}\n")
+    if not inviati and not falliti:
+        log.error("Nessun canale configurato: niente è stato inviato.")
+        return 1
     return 1 if falliti else 0  # exit code ≠ 0 -> GitHub ti avvisa via email
 
 
