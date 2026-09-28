@@ -4,7 +4,7 @@ Uso:
     python main.py --dry-run                # anteprima: WhatsApp a schermo + anteprima.html
     python main.py                          # invia su tutti i canali configurati
     python main.py --canali email           # invia solo l'email (utile per i test)
-    python main.py --solo-alle 8            # invia solo se nel fuso configurato sono le 8 (GitHub Actions)
+    python main.py --alle 8 --offset 2      # invio programmato (GitHub Actions): attende le 8 se in anticipo
 """
 from __future__ import annotations
 
@@ -12,7 +12,8 @@ import argparse
 import logging
 import os
 import sys
-from datetime import datetime
+import time
+from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -53,6 +54,29 @@ def blocchi_whatsapp(dati: dict, errori: list[str], oggi: datetime) -> list[str]
     return blocchi
 
 
+def attendi_orario(tz: ZoneInfo, ora: int, offset: int | None) -> bool:
+    """Per l'avvio programmato: False se questo avvio va saltato, altrimenti attende l'orario.
+
+    GitHub avvia i cron con ritardi anche lunghi: partiamo in anticipo e aspettiamo qui.
+    """
+    adesso = datetime.now(tz)
+    if offset is not None and adesso.utcoffset() != timedelta(hours=offset):
+        # Ci sono due cron (ora legale e solare): ognuno gira solo nel suo periodo dell'anno
+        log.info("Avvio per UTC+%d, ma ora siamo a UTC%s: salto.", offset, adesso.strftime("%z"))
+        return False
+    obiettivo = adesso.replace(hour=ora, minute=0, second=0, microsecond=0)
+    if not obiettivo - timedelta(hours=2) <= adesso <= obiettivo + timedelta(hours=3):
+        log.info("Sono le %s, fuori dalla finestra delle %d: salto.", adesso.strftime("%H:%M"), ora)
+        return False
+    attesa = (obiettivo - timedelta(minutes=1) - adesso).total_seconds()  # 1 min per raccogliere i dati
+    if attesa > 0:
+        log.info("Sono le %s: attendo fino alle %02d:00.", adesso.strftime("%H:%M"), ora)
+        time.sleep(attesa)
+    elif adesso > obiettivo + timedelta(minutes=5):
+        log.warning("GitHub ha avviato il job in ritardo (%s): invio subito.", adesso.strftime("%H:%M"))
+    return True
+
+
 def whatsapp_configurato() -> bool:
     if os.environ.get("WHATSAPP_PROVIDER", "callmebot").lower() == "twilio":
         return bool(os.environ.get("TWILIO_AUTH_TOKEN"))
@@ -63,18 +87,18 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true", help="anteprima senza inviare")
     ap.add_argument("--canali", help="es. 'email' o 'whatsapp,email' (default: da config.yaml)")
-    ap.add_argument("--solo-alle", type=int, metavar="ORA", help="esci se non è quest'ora locale")
+    ap.add_argument("--alle", type=int, metavar="ORA", help="invio programmato: attende quest'ora locale")
+    ap.add_argument("--offset", type=int, metavar="ORE", help="con --alle: differenza da UTC attesa (2 legale, 1 solare)")
     ap.add_argument("--config", default=Path(__file__).with_name("config.yaml"))
     args = ap.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     load_dotenv(Path(__file__).with_name(".env"))
     cfg = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
-    oggi = datetime.now(ZoneInfo(cfg["timezone"]))
-
-    if args.solo_alle is not None and oggi.hour != args.solo_alle:
-        log.info("Sono le %s, non le %s: niente invio.", oggi.strftime("%H:%M"), args.solo_alle)
+    tz = ZoneInfo(cfg["timezone"])
+    if args.alle is not None and not attendi_orario(tz, args.alle, args.offset):
         return 0
+    oggi = datetime.now(tz)
 
     canali = args.canali.split(",") if args.canali else cfg.get("canali", ["whatsapp"])
     dati, errori = raccogli(cfg, oggi)

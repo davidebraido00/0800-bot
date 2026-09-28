@@ -2,15 +2,16 @@ name: 0800
 
 on:
   schedule:
-    # GitHub usa UTC: 06:00 UTC = 8:00 ora legale, 07:00 UTC = 8:00 ora solare.
-    # Girano entrambi; lo script invia solo quello che cade alle 8 a Roma.
-    - cron: "0 6 * * *"
-    - cron: "0 7 * * *"
+    # GitHub usa UTC e ritarda spesso i cron allo scoccare dell'ora: partiamo alle 7:41
+    # (minuto poco affollato) e lo script attende fino alle 8:00.
+    - cron: "41 5 * * *"  # 7:41 con l'ora legale (UTC+2)
+    - cron: "41 6 * * *"  # 7:41 con l'ora solare (UTC+1)
   workflow_dispatch: {}  # pulsante "Run workflow" per test manuali
 
 jobs:
   send:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -30,10 +31,12 @@ jobs:
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
-        # Avvio manuale: invia subito. Avvio schedulato: solo se sono le 8 a Roma.
+        # Avvio manuale: invia subito. Avvio programmato: attende le 8 (solo il cron del fuso giusto).
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             python main.py
+          elif [ "${{ github.event.schedule }}" = "41 5 * * *" ]; then
+            python main.py --alle 8 --offset 2
           else
-            python main.py --solo-alle 8
+            python main.py --alle 8 --offset 1
           fi
