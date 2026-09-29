@@ -1,17 +1,22 @@
 name: 0800
 
 on:
+  # Avvio principale: un cron esterno (cron-job.org) chiama l'API di GitHub alle 7:50 ora italiana
+  # con programmato=true. Il cron di GitHub su questo repository parte con ore di ritardo o salta.
+  workflow_dispatch:
+    inputs:
+      programmato:
+        description: "Avvio programmato: attende le 8:00 e non invia due volte nello stesso giorno"
+        type: boolean
+        default: false
+  # Riserva: i cron di GitHub. Se arrivano tardi (dopo le 11) o dopo un invio già fatto, saltano.
   schedule:
-    # GitHub usa UTC e a volte ritarda o salta i cron, soprattutto allo scoccare dell'ora.
-    # Per ogni fuso: avvio principale alle 7:41 (attende le 8:00) e riserva alle 8:11.
-    # Un segno salvato in cache evita il doppio invio nello stesso giorno.
     - cron: "41 5 * * *"  # 7:41 con l'ora legale (UTC+2)
-    - cron: "11 6 * * *"  # 8:11 con l'ora legale, riserva
+    - cron: "11 6 * * *"  # 8:11 con l'ora legale
     - cron: "41 6 * * *"  # 7:41 con l'ora solare (UTC+1)
-    - cron: "11 7 * * *"  # 8:11 con l'ora solare, riserva
-  workflow_dispatch: {}  # pulsante "Run workflow": invia subito, sempre
+    - cron: "11 7 * * *"  # 8:11 con l'ora solare
 
-# Un'esecuzione alla volta: la riserva aspetta che la principale finisca, poi vede il segno e salta
+# Un'esecuzione alla volta: quelle successive aspettano, poi vedono il segno "inviato" e saltano
 concurrency:
   group: invio-0800
   cancel-in-progress: false
@@ -21,18 +26,26 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       oggi: ${{ steps.quando.outputs.oggi }}
+      programmato: ${{ steps.quando.outputs.programmato }}
       offset: ${{ steps.quando.outputs.offset }}
       gia_inviato: ${{ steps.segno.outputs.cache-hit }}
     steps:
       - id: quando
         run: |
           echo "oggi=$(TZ=Europe/Rome date +%F)" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.programmato }}" = "true" ]; then
+            echo "programmato=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "programmato=false" >> "$GITHUB_OUTPUT"
+          fi
+          # Solo i cron di GitHub (in UTC) devono sapere se valgono per l'ora legale o solare
           case "${{ github.event.schedule }}" in
             "41 5 * * *"|"11 6 * * *") echo "offset=2" >> "$GITHUB_OUTPUT" ;;
-            *) echo "offset=1" >> "$GITHUB_OUTPUT" ;;
+            "41 6 * * *"|"11 7 * * *") echo "offset=1" >> "$GITHUB_OUTPUT" ;;
+            *) echo "offset=" >> "$GITHUB_OUTPUT" ;;
           esac
       - id: segno
-        if: github.event_name == 'schedule'
+        if: steps.quando.outputs.programmato == 'true'
         uses: actions/cache/restore@v6
         with:
           path: .inviato
@@ -67,15 +80,16 @@ jobs:
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
-        # Manuale: invia subito. Programmato: attende le 8 (solo il cron del fuso giusto) e lascia il segno.
+          OFFSET: ${{ needs.controllo.outputs.offset }}
+        # Manuale: invia subito. Programmato: attende le 8:00 e lascia il segno "inviato".
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            python main.py
+          if [ "${{ needs.controllo.outputs.programmato }}" = "true" ]; then
+            python main.py --alle 8 ${OFFSET:+--offset "$OFFSET"} --segna .inviato
           else
-            python main.py --alle 8 --offset ${{ needs.controllo.outputs.offset }} --segna .inviato
+            python main.py
           fi
       - name: Segna come inviato
-        if: always() && github.event_name == 'schedule' && hashFiles('.inviato') != ''
+        if: always() && needs.controllo.outputs.programmato == 'true' && hashFiles('.inviato') != ''
         uses: actions/cache/save@v6
         with:
           path: .inviato

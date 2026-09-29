@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="640" height="640">
+  <!-- A · Tazzina vista dall'alto che è anche un orologio: le lancette segnano le 8:00 -->
+  <defs>
+    <linearGradient id="alba" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffb347"/>
+      <stop offset="1" stop-color="#e8663d"/>
+    </linearGradient>
+    <radialGradient id="caffe" cx="0.5" cy="0.45" r="0.55">
+      <stop offset="0" stop-color="#3b2418"/>
+      <stop offset="0.72" stop-color="#5a3622"/>
+      <stop offset="1" stop-color="#b0743f"/>
+    </radialGradient>
+  </defs>
+  <rect width="640" height="640" fill="url(#alba)"/>
+  <circle cx="332" cy="342" r="230" fill="#7a2e12" opacity="0.18"/>
+  <circle cx="320" cy="320" r="228" fill="#fdf6ec"/>
+  <circle cx="320" cy="320" r="197" fill="none" stroke="#efe2d0" stroke-width="3"/>
+  <rect x="452" y="294" width="96" height="52" rx="26" fill="#ffffff" stroke="#e9dccb" stroke-width="3"/>
+  <circle cx="327" cy="329" r="162" fill="#5a3a26" opacity="0.10"/>
+  <circle cx="320" cy="320" r="160" fill="#ffffff"/>
+  <circle cx="320" cy="320" r="136" fill="url(#caffe)"/>
+  <g stroke="#f3dcc0" stroke-width="9" stroke-linecap="round" opacity="0.9">
+    <line x1="320" y1="197" x2="320" y2="212"/>
+    <line x1="443" y1="320" x2="428" y2="320"/>
+    <line x1="320" y1="443" x2="320" y2="428"/>
+    <line x1="197" y1="320" x2="212" y2="320"/>
+  </g>
+  <g stroke="#fdf6ec" stroke-linecap="round">
+    <line x1="320" y1="320" x2="266" y2="351" stroke-width="18"/>
+    <line x1="320" y1="320" x2="320" y2="226" stroke-width="12"/>
+  </g>
+  <circle cx="320" cy="320" r="14" fill="#ffb347"/>
+  <circle cx="320" cy="320" r="5" fill="#3b2418"/>
+</svg>

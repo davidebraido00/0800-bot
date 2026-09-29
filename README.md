@@ -62,7 +62,21 @@ In *Settings → Secrets and variables → Actions* aggiungi questi secret:
 
 Se un canale non è configurato viene saltato, gli altri partono comunque. Se un invio fallisce, GitHub ti manda un'email.
 
-GitHub può ritardare o saltare i job programmati, quindi ogni giorno ci sono due avvii: alle **7:41** (attende le 8:00 e invia) e alle **8:11** di riserva (invia solo se il primo non è partito). Un segno salvato nella cache di GitHub evita i doppi invii; ora legale e solare sono gestite da sole. Puoi lanciarlo a mano da *Actions → 0800 → Run workflow*: invia subito.
+Puoi lanciarlo a mano da *Actions → 0800 → Run workflow*: invia subito.
+
+## 6. Avvio puntuale alle 8 (cron-job.org)
+
+Il cron integrato di GitHub su questo repository parte con ore di ritardo o non parte affatto, quindi l'avvio lo dà un servizio esterno e gratuito, [cron-job.org](https://cron-job.org), che alle 7:50 chiede a GitHub di lanciare il workflow (come il pulsante "Run workflow", che parte subito). Lo script attende le 8:00 e invia.
+
+1. **Token GitHub**: *Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token*
+   - Repository access: *Only select repositories* → `0800-bot`
+   - Permissions → Repository permissions → **Actions: Read and write**
+2. **cron-job.org** → *Create cronjob*:
+   - URL: `https://api.github.com/repos/davidebraido00/0800-bot/actions/workflows/morning.yml/dispatches`
+   - Orario: ogni giorno alle **07:50**, fuso **Europe/Rome**
+   - *Advanced*: metodo **POST**, header `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`, `X-GitHub-Api-Version: 2022-11-28`, corpo `{"ref":"main","inputs":{"programmato":"true"}}`
+
+GitHub risponde `204 No Content` quando accetta la richiesta. I cron di GitHub restano come riserva: un segno salvato nella cache evita di inviare due volte nello stesso giorno, e gli avvii arrivati dopo le 11 vengono saltati.
 
 ## Personalizza
 

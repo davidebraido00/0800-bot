@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="640" height="640">
+  <!-- C · Il sole che sorge dalla tazza del caffè: la giornata comincia da qui -->
+  <defs>
+    <radialGradient id="cielo" cx="0.5" cy="0.42" r="0.7">
+      <stop offset="0" stop-color="#fff1d6"/>
+      <stop offset="1" stop-color="#f6a95b"/>
+    </radialGradient>
+    <linearGradient id="sole" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffc94d"/>
+      <stop offset="1" stop-color="#f28a2e"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="640" fill="url(#cielo)"/>
+  <g stroke="#ffffff" stroke-width="18" stroke-linecap="round">
+    <line x1="320" y1="176" x2="320" y2="132"/>
+    <line x1="236" y1="200" x2="212" y2="164"/>
+    <line x1="404" y1="200" x2="428" y2="164"/>
+    <line x1="176" y1="262" x2="138" y2="242"/>
+    <line x1="464" y1="262" x2="502" y2="242"/>
+  </g>
+  <circle cx="320" cy="310" r="104" fill="url(#sole)"/>
+  <circle cx="474" cy="378" r="46" fill="none" stroke="#2a1f19" stroke-width="24"/>
+  <path d="M168 306 H472 Q466 470 384 480 H256 Q174 470 168 306 Z" fill="#2a1f19"/>
+  <rect x="150" y="298" width="340" height="18" rx="9" fill="#3d2c22"/>
+  <text x="320" y="420" text-anchor="middle" font-family="SF Pro Rounded, SF Pro Display, Helvetica Neue, Arial, sans-serif" font-weight="800" font-size="70" fill="#f6b766">08:00</text>
+  <rect x="132" y="484" width="376" height="26" rx="13" fill="#2a1f19"/>
+</svg>
